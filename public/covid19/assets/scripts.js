@@ -1,6 +1,7 @@
 console.log('hola');
 
-const modal = document.getElementById('myModal');
+let bodyModal = document.querySelector('.modal-body');
+let tituloModal = document.querySelector('.modal-title');
 
 (() => {
 
@@ -89,7 +90,7 @@ const casosConfirmados = (datos) => {
 
 
 const getDataPais = async (pais) => {
-    let bodyModal = document.querySelector('.modal-body');
+    
 
     try {
         const respuesta = await fetch(`http://localhost:3000/api/countries/${pais}`);
@@ -137,7 +138,7 @@ const getDataPais = async (pais) => {
     } catch (error) {
         console.error(error);
         bodyModal.style.textAlign = 'center';
-        bodyModal.style.backgroundColor = '#7fffd4';
+        //bodyModal.style.backgroundColor = '#7fffd4';
         bodyModal.innerHTML = `<img src="http://localhost:3000/covid19/assets/img/imagen.png">
         <p><mark><strong>${error}</strong></mark></p>`;
     }
@@ -184,6 +185,30 @@ window.verDetalle = (pais) => {
     getDataPais(pais);
 }
 
+const iniciarSesion = document.getElementById("IniciarSesion");
+
+
+
+iniciarSesion.addEventListener("click", (e)=>{
+
+        e.preventDefault();
+        bodyModal.style.backgroundColor="white";
+        bodyModal.style.textAlign="left";
+        tituloModal.innerHTML = "<h2>Inicio de sesión</h2>";
+        bodyModal.innerHTML = `
+        <form>
+            <div class="mb-3">
+                <label for="exampleInputEmail1" class="form-label"><h3>Correo:</h3></label>
+                <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">            
+            </div>
+            <div class="mb-3">
+                <label for="exampleInputPassword1" class="form-label"><h3>Contraseña:</h3></label>
+                <input type="password" class="form-control" id="exampleInputPassword1">
+            </div>            
+            <button type="submit" class="btn btn-primary">Ingresar</button>
+      </form>`;
+
+});
 
 
 
