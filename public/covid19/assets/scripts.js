@@ -1,7 +1,9 @@
 console.log('hola');
 
+//const modal = document.querySelector('.modal');
 let bodyModal = document.querySelector('.modal-body');
 let tituloModal = document.querySelector('.modal-title');
+
 
 (() => {
 
@@ -42,7 +44,7 @@ const casosConfirmados = (datos) => {
 
         estadisticasConfirmados.push({
             label: element.location,
-            y: element.confirmed,
+            y: element.confirmed
         });
 
     });
@@ -51,7 +53,7 @@ const casosConfirmados = (datos) => {
 
         estadisticasMuertos.push({
             label: element.location,
-            y: element.deaths,
+            y: element.deaths
         });
     })
 
@@ -78,19 +80,26 @@ const casosConfirmados = (datos) => {
         },
         data: [{
             type: "column",
+            name: "Confirmados",
+            legendText: "Confirmados",
+            showInLegend: true,
             dataPoints: estadisticasConfirmados,
         },
         {
             type: "column",
+            name: "Muertes",
+            legendText: "Muertes",
+            showInLegend: true,
             dataPoints: estadisticasMuertos,
         }]
     });
     chart.render();
+
 }
 
 
 const getDataPais = async (pais) => {
-    
+
 
     try {
         const respuesta = await fetch(`http://localhost:3000/api/countries/${pais}`);
@@ -172,7 +181,7 @@ const tabla = (datos) => {
                     <td>${element.deaths}</td>
                     <td>${element.recovered}</td>
                     <td>
-                    <button type="button" onclick="verDetalle('${element.location}')" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#staticBackdrop">
+                    <button type="button" onclick="verDetalle('${element.location}')" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#miModal">
                         Ver Detalle
                     </button>                    
                     </td>
@@ -185,30 +194,274 @@ window.verDetalle = (pais) => {
     getDataPais(pais);
 }
 
+//situacion chile
 const iniciarSesion = document.getElementById("IniciarSesion");
+const situacionChile = document.getElementById("situacionChile");
+const cerrarSesion = document.getElementById("cerrarSesion");
+const claveToken = localStorage.getItem('jwt-token');
+let grupoConfirmados = [];
+let grupoMuertos = [];
+let grupoRecuperados = [];
 
 
 
-iniciarSesion.addEventListener("click", (e)=>{
+//obtener datos chile
 
-        e.preventDefault();
-        bodyModal.style.backgroundColor="white";
-        bodyModal.style.textAlign="left";
-        tituloModal.innerHTML = "<h2>Inicio de sesión</h2>";
-        bodyModal.innerHTML = `
-        <form>
+const getDataConfirmados = async (jwt) => {
+
+    const res = await fetch('http://localhost:3000/api/confirmed',
+        {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${jwt}`
+            }
+        })
+    const { data } = await res.json();
+
+    return data;
+};
+
+//const getDataMuertos;
+const getDataMuertos = async (jwt) => {
+
+    const res = await fetch('http://localhost:3000/api/deaths',
+        {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${jwt}`
+            }
+        })
+    const { data } = await res.json();
+
+    return data
+};
+
+//const getDataRecuperados;
+const getDataRecuperados = async (jwt) => {
+
+    const res = await fetch('http://localhost:3000/api/recovered',
+        {
+            method: 'GET',
+            headers: {
+                Authorization: `Bearer ${jwt}`
+            }
+        })
+    const { data } = await res.json();
+
+    return data
+};
+
+
+
+const postData = async (correo, clave, spanError) => {
+
+    try {
+
+        const res = await fetch('http://localhost:3000/api/login', {
+            method: 'POST',
+            body: JSON.stringify({ email: correo, password: clave })
+        });
+        const { token } = await res.json();
+        localStorage.setItem('jwt-token', token);
+
+        if (token == undefined) throw "El correo y/o contraseña son incorrectas.";
+
+        return token;
+
+    } catch (error) {
+        console.error(`El error es: ${error}`);
+        document.getElementById(spanError).innerHTML = `${error}`;
+        setTimeout(() => {
+            document.getElementById(spanError).innerHTML = "";
+        }, 3000);
+    }
+
+}
+
+const toggle = () => {
+
+    $(iniciarSesion).toggle();
+    $(situacionChile).toggle();
+    $(cerrarSesion).toggle();
+}
+
+const updateNav = () => {
+
+    $("#miModal").modal('hide');//ocultamos el modal
+    $('body').removeClass('modal-open');//eliminamos la clase del body para poder hacer scroll
+    //seteo de navegador
+    toggle();
+};
+
+iniciarSesion.addEventListener("click", (e) => {
+
+    e.preventDefault();
+    bodyModal.style.backgroundColor = "white";
+    bodyModal.style.textAlign = "left";
+    tituloModal.innerHTML = "<h2>Inicio de sesión</h2>";
+    bodyModal.innerHTML = `
+        <form id="js-form-login">
             <div class="mb-3">
                 <label for="exampleInputEmail1" class="form-label"><h3>Correo:</h3></label>
-                <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp">            
+                <input type="email" class="form-control" id="InputEmail" aria-describedby="emailHelp">            
             </div>
             <div class="mb-3">
                 <label for="exampleInputPassword1" class="form-label"><h3>Contraseña:</h3></label>
-                <input type="password" class="form-control" id="exampleInputPassword1">
-            </div>            
+                <input type="password" class="form-control" id="InputPassword">
+            </div> 
+            <div class="mb-3">
+            <span id="spanError" class="text-danger"></span>  
+            </div>         
             <button type="submit" class="btn btn-primary">Ingresar</button>
       </form>`;
 
+    const formulario = document.getElementById('js-form-login');
+
+    formulario.addEventListener('submit', async (e) => {
+
+        e.preventDefault();
+        let email = document.getElementById('InputEmail').value;
+        let pass = document.getElementById('InputPassword').value;
+
+        if (email && pass) {
+            const JWT = await postData(email, pass, 'spanError');
+            console.log(JWT);
+            if (JWT) {
+                updateNav();
+            }
+
+        }
+        else {
+            alert('Faltan datos por llenar');
+        }
+
+    });
+
 });
+
+situacionChile.addEventListener('click', async (e) => {
+
+    document.getElementById('chartContainer').style.display = "none";
+    document.getElementById('tablita').style.display = "none";
+
+    //$('#cargando').text('Cargando...');
+    document.getElementById('cargando').innerHTML = `<img class="loader" src="http://localhost:3000/covid19/assets/img/puff.svg" alt="cargando">`
+
+    const confirmados = await getDataConfirmados(claveToken);
+    const muertos = await getDataMuertos(claveToken);
+    const recuperados = await getDataRecuperados(claveToken);
+    console.log(confirmados, muertos, recuperados);
+
+    if (confirmados && muertos && recuperados) {
+        //$('#cargando').text('');
+        document.getElementById('cargando').innerHTML="";
+    }
+
+    graficoChile(confirmados, muertos, recuperados);
+
+});
+
+//grafico situación chile
+const graficoChile = (confirmados, muertos, recuperados) => {
+
+    confirmados.forEach(element => {
+
+        grupoConfirmados.push({
+            x: new Date(element.date),
+            y: element.total
+        });
+    });
+
+    muertos.forEach(element => {
+
+        grupoMuertos.push({
+            x: new Date(element.date),
+            y: element.total
+        });
+    });
+
+    recuperados.forEach(element => {
+
+        grupoRecuperados.push({
+            x: new Date(element.date),
+            y: element.total
+        });
+    });
+
+    var chart = new CanvasJS.Chart("chartContainerChile", {
+        animationEnabled: true,
+        title: {
+            text: "Situación Chile"
+        },
+        axisX: {
+            valueFormatString: "DD MMM,YY"
+        },
+        axisY: {
+            title: "Cantidad de casos"
+        },
+        legend: {
+            cursor: "pointer",
+            fontSize: 16,
+            itemclick: toggleDataSeries
+        },
+        toolTip: {
+            shared: true
+        },
+        data: [{
+            name: "Confirmados",
+            type: "spline",
+            showInLegend: true,
+            dataPoints: grupoConfirmados
+
+        },
+        {
+            name: "Muertes",
+            type: "spline",
+            showInLegend: true,
+            dataPoints: grupoMuertos
+        },
+        {
+            name: "Recuperados",
+            type: "spline",
+            showInLegend: true,
+            dataPoints: grupoRecuperados
+        }]
+    });
+    chart.render();
+
+    function toggleDataSeries(e) {
+        if (typeof (e.dataSeries.visible) === "undefined" || e.dataSeries.visible) {
+            e.dataSeries.visible = false;
+        }
+        else {
+            e.dataSeries.visible = true;
+        }
+        chart.render();
+    }
+
+}
+
+//cerrar sesion
+cerrarSesion.addEventListener('click', ()=>{
+    localStorage.removeItem('jwt-token');
+    toggle();
+    location.reload();
+})
+
+const init = async () => {
+    const token = localStorage.getItem('jwt-token');
+
+    if (token) {
+        toggle();
+    }
+}
+
+init();
+
+
+
+
+
 
 
 
