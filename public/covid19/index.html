@@ -10,6 +10,10 @@
         div {
             margin-top: 2rem;
         }
+        .loader{
+            width: 100px;
+        }
+        
     </style>
 </head>
 
@@ -18,8 +22,10 @@
         <div class="container">
         <h2 class="navbar-text">Covid 19 </h2>
         <span class="navbar-text">
-            Home
-            <a href="#" id="IniciarSesion" data-bs-toggle="modal" data-bs-target="#staticBackdrop">Iniciar sesión</a> 
+            <a href="#" onclick="window.location.reload()" >Home</a>
+            <a href="#" id="IniciarSesion" data-bs-toggle="modal" data-bs-target="#miModal">Iniciar sesión</a> 
+            <a href="#" id="situacionChile" style="display: none;">Situación Chile</a> 
+            <a href="#" id="cerrarSesion" style="display: none;" >Cerrar sesión</a> 
         </span>
         </div>
     </nav>
@@ -27,17 +33,24 @@
 
     <div class="container-fluid">
         <div id="chartContainer" style="height: 300px; width: 100%;"></div>
-    </div>
-
+    </div>   
+    
+    <p id="cargando" class="text-center "></p>
+    
     <div class="container-fluid">
         <table class="table" id="tablita">
 
         </table>
     </div>
 
+    <div class="container-fluid">        
+        <div id="chartContainerChile" style="height: 300px; width: 100%;"></div>
+    </div>
+
     
     <!-- Modal grafico-->
-    <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+    
+    <div class="modal fade" id="miModal" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
         aria-labelledby="staticBackdropLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -54,6 +67,7 @@
             </div>
         </div>
     </div>
+    
     
 
     <script src="https://canvasjs.com/assets/script/canvasjs.min.js"></script>
