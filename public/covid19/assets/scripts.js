@@ -298,22 +298,22 @@ iniciarSesion.addEventListener("click", (e) => {
     e.preventDefault();
     bodyModal.style.backgroundColor = "white";
     bodyModal.style.textAlign = "left";
-    tituloModal.innerHTML = "<h2>Inicio de sesión</h2>";
+    tituloModal.innerHTML = "<h4>Inicio de sesión</h4>";
     bodyModal.innerHTML = `
         <form id="js-form-login">
             <div class="mb-3">
-                <label for="exampleInputEmail1" class="form-label"><h3>Correo:</h3></label>
+                <label for="exampleInputEmail1" class="form-label"><h5>Correo:</h5></label>
                 <input type="email" class="form-control" id="InputEmail" aria-describedby="emailHelp">            
             </div>
             <div class="mb-3">
-                <label for="exampleInputPassword1" class="form-label"><h3>Contraseña:</h3></label>
+                <label for="exampleInputPassword1" class="form-label"><h5>Contraseña:</h5></label>
                 <input type="password" class="form-control" id="InputPassword">
             </div> 
             <div class="mb-3">
             <span id="spanError" class="text-danger"></span>  
             </div>         
             <button type="submit" class="btn btn-primary">Ingresar</button>
-      </form>`;
+    </form>`;
 
     const formulario = document.getElementById('js-form-login');
 
