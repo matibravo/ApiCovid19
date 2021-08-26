@@ -110,7 +110,7 @@ const getDataPais = async (pais) => {
 
         if (data.location == undefined) throw "La información solicitada en estos momentos no se encuentra disponible.";
 
-
+        tituloModal.innerHTML="";
         bodyModal.innerHTML = `<div id="chartContainerPais" style="height: 300px; width: 100%;"></div>`;
 
         var chart = new CanvasJS.Chart("chartContainerPais", {
@@ -198,12 +198,35 @@ window.verDetalle = (pais) => {
 const iniciarSesion = document.getElementById("IniciarSesion");
 const situacionChile = document.getElementById("situacionChile");
 const cerrarSesion = document.getElementById("cerrarSesion");
-const claveToken = localStorage.getItem('jwt-token');
 let grupoConfirmados = [];
 let grupoMuertos = [];
 let grupoRecuperados = [];
 
 
+const postData = async (correo, clave, spanError) => {
+
+    try {
+
+        const res = await fetch('http://localhost:3000/api/login', {
+            method: 'POST',
+            body: JSON.stringify({ email: correo, password: clave })
+        });
+        const { token } = await res.json();
+        localStorage.setItem('jwt-token', token);
+
+        if (token == undefined) throw "El correo y/o contraseña son incorrectas.";
+
+        return token;
+
+    } catch (error) {
+        console.error(`El error es: ${error}`);
+        document.getElementById(spanError).innerHTML = `${error}`;
+        setTimeout(() => {
+            document.getElementById(spanError).innerHTML = "";
+        }, 3000);
+    }
+
+}
 
 //obtener datos chile
 
@@ -251,33 +274,6 @@ const getDataRecuperados = async (jwt) => {
     return data
 };
 
-
-
-const postData = async (correo, clave, spanError) => {
-
-    try {
-
-        const res = await fetch('http://localhost:3000/api/login', {
-            method: 'POST',
-            body: JSON.stringify({ email: correo, password: clave })
-        });
-        const { token } = await res.json();
-        localStorage.setItem('jwt-token', token);
-
-        if (token == undefined) throw "El correo y/o contraseña son incorrectas.";
-
-        return token;
-
-    } catch (error) {
-        console.error(`El error es: ${error}`);
-        document.getElementById(spanError).innerHTML = `${error}`;
-        setTimeout(() => {
-            document.getElementById(spanError).innerHTML = "";
-        }, 3000);
-    }
-
-}
-
 const toggle = () => {
 
     $(iniciarSesion).toggle();
@@ -293,27 +289,27 @@ const updateNav = () => {
     toggle();
 };
 
-iniciarSesion.addEventListener("click", (e) => {
+iniciarSesion.addEventListener("click", async (e) => {
 
     e.preventDefault();
-    bodyModal.style.backgroundColor = "white";
+    bodyModal.style.backgroundColor = "white";    
+    tituloModal.innerHTML = "<h2>Inicio de sesión</h2>";
     bodyModal.style.textAlign = "left";
-    tituloModal.innerHTML = "<h4>Inicio de sesión</h4>";
     bodyModal.innerHTML = `
         <form id="js-form-login">
             <div class="mb-3">
-                <label for="exampleInputEmail1" class="form-label"><h5>Correo:</h5></label>
+                <label for="exampleInputEmail1" class="form-label"><h3>Correo:</h3></label>
                 <input type="email" class="form-control" id="InputEmail" aria-describedby="emailHelp">            
             </div>
             <div class="mb-3">
-                <label for="exampleInputPassword1" class="form-label"><h5>Contraseña:</h5></label>
+                <label for="exampleInputPassword1" class="form-label"><h3>Contraseña:</h3></label>
                 <input type="password" class="form-control" id="InputPassword">
             </div> 
             <div class="mb-3">
             <span id="spanError" class="text-danger"></span>  
             </div>         
             <button type="submit" class="btn btn-primary">Ingresar</button>
-    </form>`;
+      </form>`;
 
     const formulario = document.getElementById('js-form-login');
 
@@ -325,11 +321,11 @@ iniciarSesion.addEventListener("click", (e) => {
 
         if (email && pass) {
             const JWT = await postData(email, pass, 'spanError');
-            console.log(JWT);
-            if (JWT) {
+            //console.log(JWT);
+            if(JWT){
                 updateNav();
             }
-
+            
         }
         else {
             alert('Faltan datos por llenar');
@@ -339,17 +335,19 @@ iniciarSesion.addEventListener("click", (e) => {
 
 });
 
-situacionChile.addEventListener('click', async (e) => {
-
+situacionChile.addEventListener('click', async () => {
+    
     document.getElementById('chartContainer').style.display = "none";
     document.getElementById('tablita').style.display = "none";
 
     //$('#cargando').text('Cargando...');
     document.getElementById('cargando').innerHTML = `<img class="loader" src="http://localhost:3000/covid19/assets/img/puff.svg" alt="cargando">`
 
-    const confirmados = await getDataConfirmados(claveToken);
-    const muertos = await getDataMuertos(claveToken);
-    const recuperados = await getDataRecuperados(claveToken);
+    let clave = localStorage.getItem('jwt-token');
+    console.log(clave);
+    const confirmados = await getDataConfirmados(clave);
+    const muertos = await getDataMuertos(clave);
+    const recuperados = await getDataRecuperados(clave);
     console.log(confirmados, muertos, recuperados);
 
     if (confirmados && muertos && recuperados) {
@@ -360,6 +358,7 @@ situacionChile.addEventListener('click', async (e) => {
     graficoChile(confirmados, muertos, recuperados);
 
 });
+
 
 //grafico situación chile
 const graficoChile = (confirmados, muertos, recuperados) => {
